@@ -9,6 +9,7 @@ parser.add_argument('-t', '--threads', default=20, type=int, required=False)
 parser.add_argument('-hc', '--hide404', action='store_true')
 parser.add_argument('-rh', '--headers', action='store_false')
 parser.add_argument('--enum', action='store_false')
+parser.add_argument('--ext', default="", type=str, required=False)
 args = parser.parse_args()
 
 url = args.url
@@ -17,7 +18,8 @@ threads = args.threads
 hideStatusCode = args.hide404
 rHeaders = args.headers
 techID = args.enum
-	
+ext = args.ext
+
 if rHeaders == True and filename == None:
 	r = requests.get(url)
 	print(c.magenta(r.headers))
@@ -30,19 +32,21 @@ else:
 
 f = open(filename)
 def request(f):
-	r = requests.get(f'{url}/{f}/')
-	sc = r.status_code
+	r =  (url +  "/" + f).replace('\n', '')
+	rr = requests.get(r)
+	sc = rr.status_code
+	fullurl = (url + "/" + f).replace('\n','')
 	if hideStatusCode == True:
 		if sc == 200:
-			print(c.green("[*] " + str(sc) + " " + url + "/" +  f, ['underlined', 'bright', 'italic']))
+			
+			print(c.green("[*] " + str(sc) + " " + fullurl , ['underlined', 'bright', 'italic']))
 		else:
 			pass
 	else:
 		if sc == 200:
-			print(c.green("[*] " + str(sc) + " " + url + "/" +  f, ['underlined', 'bright', 'italic']))
+			print(c.green("[*] " + str(sc) + " " + fullurl , ['underlined', 'bright', 'italic']))
 		else:
-			print(c.red("[*] " + str(sc) + " " + url + "/" + f, ['italic', 'dim']))
+			print(c.red("[*] " + str(sc) + " " + fullurl , ['italic', 'bright']))
 
 with ThreadPoolExecutor(max_workers=threads) as executor:
-	future_to_url = {executor.submit(request, i)
-	for i in f}
+	future_to_url = {executor.submit(request, i + ext) for i in f}
